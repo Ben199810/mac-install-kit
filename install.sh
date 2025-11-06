@@ -5,7 +5,7 @@
 brew tap k8sgpt-ai/k8sgpt
 brew tap hashicorp/tap
 brew tap common-fate/granted
-brew_array=("zsh" "bash-completion@2" "watch" "kubernetes-cli" "kustomize" "helm" "hashicorp/tap/terraform" "terragrunt" "kubectx" "jq" "okteto" "k9s" "shellcheck" "autojump" "hugo" "wget" "telnet" "tree" "k6" "fzf" "kubent" "pv" "dialog" "ipcalc" "helmfile" "awscli" "granted" "go" "uv") # 套件
+brew_array=("zsh" "bash-completion@2" "kubernetes-cli" "helm" "hashicorp/tap/terraform" "terragrunt" "kubectx" "jq" "k9s" "shellcheck" "autojump" "hugo" "wget" "telnet" "tree" "k6" "fzf" "kubent" "pv" "dialog" "ipcalc" "helmfile" "awscli" "granted" "go" "uv" "ansible") # 套件
 brew_cask=("1password" "google-chrome" "iterm2" "visual-studio-code" "gitkraken" "postman" "docker" "telegram-desktop" "raycast" "logi-options-plus" "notion" "notion-calendar" "google-cloud-sdk" "openvpn-connect" "chatgpt" "amazon-q" "drawio") # 視窗程式
 
 #=========================================
