@@ -2,11 +2,9 @@
 
 #=========================================
 # 參數設定
-brew tap k8sgpt-ai/k8sgpt
-brew tap hashicorp/tap
-brew tap common-fate/granted
-brew_array=("zsh" "bash-completion@2" "kubernetes-cli" "helm" "hashicorp/tap/terraform" "terragrunt" "kubectx" "jq" "k9s" "shellcheck" "autojump" "hugo" "wget" "telnet" "tree" "k6" "fzf" "kubent" "pv" "dialog" "ipcalc" "helmfile" "awscli" "granted" "go" "uv" "ansible") # 套件
-brew_cask=("1password" "google-chrome" "iterm2" "visual-studio-code" "gitkraken" "postman" "docker" "telegram-desktop" "raycast" "logi-options-plus" "notion" "notion-calendar" "google-cloud-sdk" "openvpn-connect" "chatgpt" "amazon-q" "drawio") # 視窗程式
+brew_tap_array=("hashicorp/tap" "k8sgpt-ai/k8sgpt" "common-fate/granted")
+brew_array=("zsh" "bash-completion" "watch" "kubernetes-cli" "kustomize" "helm" "hashicorp/tap/terraform" "terragrunt" "kubectx" "jq" "okteto" "k9s" "shellcheck" "autojump" "hugo" "wget" "telnet" "tree" "k6" "fzf" "kor" "kubent" "k8sgpt" "k3d" "pv" "dialog" "ipcalc" "yq" "helmfile" "awscli" "common-fate/granted/granted" "node" "go" "webp" "argocd" "hashicorp/tap/vault") # 套件
+brew_cask=("1password" "google-chrome" "chatgpt-atlas" "iterm2" "visual-studio-code" "gitkraken" "postman" "docker" "telegram-desktop" "spotify" "raycast" "logi-options+" "notion" "notion-calendar" "google-cloud-sdk" "openvpn-connect" "chatgpt" "amazon-q" "drawio" "kiro") # 視窗程式
 
 #=========================================
 # 腳本設定
@@ -45,21 +43,36 @@ num="$((num + 1))"
 if ! command -v brew 1>/dev/null; then
 	echo "export PATH=${brew_Path}/homebrew/bin:\$PATH" >>"$HOME"/.bash_profile && source "$HOME"/.bash_profile
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-	echo -e "${num} _ 安裝 Homebrew : [${GREEN}安裝成功${NC}]"
+	printf "%2d _ 安裝 Homebrew : [${GREEN}安裝成功${NC}]\n" "$num"
 else
-	echo -e "${num} _ 安裝 Homebrew : [${YELLOW}已安裝${NC}]"
+	printf "%2d _ 安裝 Homebrew : [${YELLOW}已安裝${NC}]\n" "$num"
 	var="$((var - 1))"
 fi
+
+# 安裝 Homebrew - tap (tap 列表請參考參數設定 brew_tap_array)
+for kit in "${brew_tap_array[@]}"; do
+	var="$((var + 1))"
+	num="$((num + 1))"
+	if ! brew tap | grep -w "$kit" 1>/dev/null; then
+		brew tap "$kit" 2>&1 
+		printf "%2d _ 安裝 Homebrew tap (%s) : [${GREEN}安裝成功${NC}]\n" "$num" "$kit"
+	else
+		printf "%2d _ 安裝 Homebrew tap (%s) : [${YELLOW}已安裝${NC}]\n" "$num" "$kit"
+		var="$((var - 1))"
+	fi
+done
 
 # 安裝 Homebrew - 套件(套件列表請參考參數設定 brew_array)
 for kit in "${brew_array[@]}"; do
 	var="$((var + 1))"
 	num="$((num + 1))"
-	if ! brew list | grep "$kit" 1>/dev/null; then
-		brew install "$kit"
-		echo -e "${num} _ 安裝 Homebrew 套件 ($kit) : [${GREEN}安裝成功${NC}]"
+	# 取得套件名稱的最後一部分（處理 tap 格式如 hashicorp/tap/terraform）
+	kit_name="${kit##*/}"
+	if ! brew list | grep -w "$kit_name" 1>/dev/null; then
+		brew install "$kit" 2>&1 | grep -v "Auto-updating Homebrew" | grep -v "Adjust how often" | grep -v "HOMEBREW" | grep -v "Hide these hints" | grep -v "Warning:" | grep -v "already installed" | grep -v "To reinstall"
+		printf "%2d _ 安裝 Homebrew 套件 (%s) : [${GREEN}安裝成功${NC}]\n" "$num" "$kit"
 	else
-		echo -e "${num} _ 安裝 Homebrew 套件 ($kit) : [${YELLOW}已安裝${NC}]"
+		printf "%2d _ 安裝 Homebrew 套件 (%s) : [${YELLOW}已安裝${NC}]\n" "$num" "$kit"
 		var="$((var - 1))"
 	fi
 done
@@ -82,14 +95,41 @@ fi
 for kit in "${brew_cask[@]}"; do
 	var="$((var + 1))"
 	num="$((num + 1))"
-	if ! brew list --cask | grep "$kit" 1>/dev/null; then
-		brew install --cask "$kit"
+	# 特例處理：google-cloud-sdk 安裝後會變成 gcloud-cli
+	check_name="$kit"
+	if [ "$kit" = "google-cloud-sdk" ]; then
+		check_name="gcloud-cli"
+	fi
+	if ! brew list --cask | grep -w "$check_name" 1>/dev/null; then
+		brew install --cask "$kit" 2>&1 | grep -v "Auto-updating Homebrew" | grep -v "Adjust how often" | grep -v "HOMEBREW" | grep -v "Hide these hints" | grep -v "Warning: Not upgrading" | grep -v "already installed"
 		echo -e "${num} _ 安裝 Homebrew 視窗程式 ($kit) : [${GREEN}安裝成功${NC}]"
 	else
 		echo -e "${num} _ 安裝 Homebrew 視窗程式 ($kit) : [${YELLOW}已安裝${NC}]"
 		var="$((var - 1))"
 	fi
 done
+
+# 安裝 npm slidev
+var="$((var + 1))"
+num="$((num + 1))"
+if ! command -v slidev 1>/dev/null; then
+	npm install -g @slidev/cli
+	echo -e "${num} _ 安裝 npm slidev : [${GREEN}安裝成功${NC}]"
+else
+	echo -e "${num} _ 安裝 npm slidev : [${YELLOW}已安裝${NC}]"
+	var="$((var - 1))"
+fi
+
+# 安裝 helm diff
+var="$((var + 1))"
+num="$((num + 1))"
+if ! helm diff version >/dev/null 2>&1; then
+	helm plugin install https://github.com/databus23/helm-diff
+	echo -e "${num} _ 安裝 helm diff : [${GREEN}安裝成功${NC}]"
+else
+	echo -e "${num} _ 安裝 helm diff : [${YELLOW}已安裝${NC}]"
+	var="$((var - 1))"
+fi
 
 # 安裝 oh-my-zsh
 var="$((var + 1))"
@@ -139,10 +179,29 @@ else
 	var="$((var - 1))"
 fi
 
+# 設定 gke-gcloud-auth-plugin
+var="$((var + 1))"
+num="$((num + 1))"
+if gcloud components list --filter="gke-gcloud-auth-plugin" --format="value(state.name)" 2>/dev/null | grep -q "Not Installed"; then
+    echo 'Y' | gcloud components install gke-gcloud-auth-plugin >/tmp/gke_install.log 2>&1
+    if [ $? -eq 0 ]; then
+        echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${GREEN}安裝成功或已是最新版本${NC}]"
+    else
+        echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${RED}安裝失敗${NC}]"
+        cat /tmp/gke_install.log
+        rm -f /tmp/gke_install.log
+        exit 1
+    fi
+    rm -f /tmp/gke_install.log
+else
+    echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${YELLOW}已安裝${NC}]"
+    var="$((var - 1))"
+fi
+
 # 設定 autojump
 var="$((var + 1))"
 num="$((num + 1))"
-if ! grep "git zsh-autosuggestions zsh-syntax-highlighting autojump" "$HOME"/.zshrc 1>/dev/null; then
+if ! grep "git aws fzf-tab zsh-autosuggestions zsh-syntax-highlighting autojump" "$HOME"/.zshrc 1>/dev/null; then
 	sed -i -e 's/plugins=(.*/plugins=(git aws fzf-tab zsh-autosuggestions zsh-syntax-highlighting autojump)/g' "$HOME"/.zshrc
 	echo -e "${num} _ 設定 autojump : [${GREEN}設定成功${NC}]"
 else
@@ -161,6 +220,17 @@ else
 	var="$((var - 1))"
 fi
 
+# 設定 vault 自動補全
+var="$((var + 1))"
+num="$((num + 1))"
+if ! grep "complete -C /opt/homebrew/bin/vault vault" ~/.bash_profile 1>/dev/null; then
+	vault -autocomplete-install
+	echo -e "${num} _ 設定 vault 自動補全 : [${GREEN}設定成功${NC}]"
+else
+	echo -e "${num} _ 設定 vault 自動補全 : [${YELLOW}已設定${NC}]"
+	var="$((var - 1))"
+fi
+
 # 設定 aws 自動補全
 var="$((var + 1))"
 num="$((num + 1))"
@@ -169,22 +239,6 @@ if ! grep "complete -C /opt/homebrew/bin/aws_completer aws" "$HOME"/.bash_profil
 	echo -e "${num} _ 設定 aws 自動補全 : [${GREEN}設定成功${NC}]"
 else
 	echo -e "${num} _ 設定 aws 自動補全 : [${YELLOW}已設定${NC}]"
-	var="$((var - 1))"
-fi
-
-# 設定 gke-gcloud-auth-plugin
-var="$((var + 1))"
-num="$((num + 1))"
-if ! gcloud components list --filter="gke-gcloud-auth-plugin" --format="value(state.name)" | grep -q "Installed" 1>/dev/null; then
-	echo 'Y' | gcloud components install gke-gcloud-auth-plugin
-	if [ $? -eq 0 ]; then
-		echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${GREEN}安裝成功${NC}]"
-	else
-		echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${RED}安裝失敗${NC}]"
-		exit 1
-	fi
-else
-	echo -e "${num} _ 安裝 gke-gcloud-auth-plugin : [${YELLOW}已安裝或已是最新版本${NC}]"
 	var="$((var - 1))"
 fi
 
@@ -230,6 +284,18 @@ else
 	var="$((var - 1))"
 fi
 
+# 設定 PS1
+var="$((var + 1))"
+num="$((num + 1))"
+PS1_LINE='export PS1='\''%{$fg[$NCOLOR]%}%B%n%b%{$reset_color%}:%{$fg[blue]%}%B%c/%b%{$reset_color%} $(git_prompt_info)%(!.#.$) '\'''
+if ! grep -E '^(export )?PS1=' "$HOME/.zshrc" >/dev/null 2>&1; then
+    echo "$PS1_LINE" >>"$HOME"/.zshrc
+    echo -e "${num} _ 設定 PS1 : [${GREEN}設定成功${NC}]"
+else
+    echo -e "${num} _ 設定 PS1 : [${YELLOW}已設定${NC}]"
+    var="$((var - 1))"
+fi
+
 # 設定 .vimrc (vim option 向右單字切換)
 var="$((var + 1))"
 num="$((num + 1))"
@@ -239,6 +305,37 @@ if ! grep -s ":map f w" "$HOME"/.vimrc 1>/dev/null; then
 else
 	echo -e "${num} _ 設定 .vimrc : [${YELLOW}已設定${NC}]"
 	var="$((var - 1))"
+fi
+
+# 設定 iTerm2
+var="$((var + 1))"
+num="$((num + 1))"
+
+PROFILE_DIR="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
+PROFILE_FILE="pin-yi.json"
+PROFILE_GUID="A1B2C3D4-XXXX-YYYY-ZZZZ-1234567890AC"
+
+# 檢查 JSON 是否存在於目前資料夾
+if [ ! -f "$PROFILE_FILE" ]; then
+    echo -e "${num} _ 設定 iTerm2 Profile : [${RED}pin-yi.json 不存在${NC}]"
+    var="$((var - 1))"
+else
+    # 建立資料夾（如果存在不會有任何影響）
+    mkdir -p "$PROFILE_DIR"
+
+    # 檔案是否已經存在於 DynamicProfiles
+    if ! diff "$PROFILE_FILE" "$PROFILE_DIR/$PROFILE_FILE" >/dev/null 2>&1; then
+        cp "$PROFILE_FILE" "$PROFILE_DIR/"
+
+		defaults write com.googlecode.iterm2 "Default Bookmark Guid" -string "$PROFILE_GUID"
+		defaults write com.googlecode.iterm2 "Default Bookmark Guid For New Windows" -string "$PROFILE_GUID"
+		killall iTerm2 >/dev/null 2>&1
+
+        echo -e "${num} _ 設定 iTerm2 Profile : [${GREEN}已複製設定檔${NC}]"
+    else
+        echo -e "${num} _ 設定 iTerm2 Profile : [${YELLOW}已存在相同設定檔${NC}]"
+        var="$((var - 1))"
+    fi
 fi
 
 #=========================================
