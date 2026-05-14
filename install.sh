@@ -312,12 +312,12 @@ var="$((var + 1))"
 num="$((num + 1))"
 
 PROFILE_DIR="$HOME/Library/Application Support/iTerm2/DynamicProfiles"
-PROFILE_FILE="pin-yi.json"
-PROFILE_GUID="A1B2C3D4-XXXX-YYYY-ZZZZ-1234567890AC"
+PROFILE_FILE="Profiles.json"
+PROFILE_GUID="DD379E68-584A-4F44-BA7F-68B5816AE64C"
 
 # 檢查 JSON 是否存在於目前資料夾
 if [ ! -f "$PROFILE_FILE" ]; then
-    echo -e "${num} _ 設定 iTerm2 Profile : [${RED}pin-yi.json 不存在${NC}]"
+    echo -e "${num} _ 設定 iTerm2 Profile : [${RED}$PROFILE_FILE 不存在${NC}]"
     var="$((var - 1))"
 else
     # 建立資料夾（如果存在不會有任何影響）
